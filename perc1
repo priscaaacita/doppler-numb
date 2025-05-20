@@ -1,0 +1,42 @@
+from manim import *
+
+class Doppler(Scene):
+    def create_doppler_effect(self, source_start, movement_vector, run_time):
+        current_frame = 0
+        source = Dot(color=RED).move_to(source_start)
+        observer = Dot(color=BLUE).move_to(RIGHT * 4)  # posisi pengamat tetap
+        waves = VGroup()
+
+        def add_wavefront(mob, dt):
+            nonlocal current_frame
+            current_frame += 1
+            if current_frame % 8 == 0:
+                wavefront = Circle(
+                    radius=0.01,
+                    color=YELLOW,
+                    stroke_width=1.5,
+                    arc_center=source.get_center()
+                )
+                waves.add(wavefront)
+
+        def expand_waves(mob, dt):
+            for wavefront in waves:
+                wavefront.scale_to_fit_width(wavefront.width + 0.055)
+                wavefront.set_stroke(opacity=max(0, 1 - wavefront.width / 20))
+
+        waves.add_updater(add_wavefront)
+        waves.add_updater(expand_waves)
+
+        self.add(source, observer, waves)
+        self.wait(1)
+        self.play(source.animate.shift(movement_vector), rate_func=linear, run_time=run_time)
+        waves.remove_updater(add_wavefront)
+        self.wait(0.5)
+        self.play(FadeOut(waves), FadeOut(source))
+        self.wait(0.5)
+
+    def construct(self):
+        # Sumber bergerak ke kanan
+        self.create_doppler_effect(ORIGIN, RIGHT * 5, run_time=6)
+        # Sumber bergerak ke kiri
+        self.create_doppler_effect(ORIGIN, LEFT * 5, run_time=6)
